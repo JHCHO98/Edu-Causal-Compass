@@ -94,14 +94,19 @@
                             <span class="text-sm font-medium text-slate-500">명</span>
                         </div>
                     </div>
-                    <div class="rounded-2xl border border-red-100 bg-red-50/30 p-6 shadow-sm premium-card">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-red-700">사각지대 핵심 타겟 (위기 취약군)</span>
-                            <div class="rounded-xl bg-red-500 p-2.5 text-white"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+                    <div class="rounded-2xl border border-red-100 bg-red-50/30 p-6 shadow-sm premium-card flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-red-700">사각지대 핵심 타겟 (위기 취약군)</span>
+                                <div class="rounded-xl bg-red-500 p-2.5 text-white"><i data-lucide="alert-circle" class="w-5 h-5"></i></div>
+                            </div>
+                            <div class="mt-4 flex items-baseline gap-1">
+                                <span id="statVulnerables" class="text-3xl font-bold tracking-tight text-red-600">-</span>
+                                <span class="text-sm font-medium text-red-500">명</span>
+                            </div>
                         </div>
-                        <div class="mt-4 flex items-baseline gap-1">
-                            <span id="statPersuadables" class="text-3xl font-bold tracking-tight text-red-600">-</span>
-                            <span class="text-sm font-medium text-red-500">명</span>
+                        <div class="text-[10px] text-red-400 mt-2 font-semibold flex items-center gap-1 border-t border-red-100/50 pt-2">
+                            <i data-lucide="gauge" class="w-3.5 h-3.5"></i> T=0 Cutoff 임계값: <span id="vulnerablesCutoffValue" class="font-mono font-bold">-</span>
                         </div>
                     </div>
                     <div class="rounded-2xl border border-amber-100 bg-amber-50/30 p-6 shadow-sm premium-card">
@@ -122,6 +127,43 @@
                         <div class="mt-4 flex items-baseline gap-1">
                             <span id="statSureThings" class="text-3xl font-bold tracking-tight text-emerald-600">-</span>
                             <span class="text-sm font-medium text-slate-500">명</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 💡 Toss Style Premium Academic Insight Panel -->
+                <section class="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6.5 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                    <!-- Neon glow elements in background -->
+                    <div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="space-y-3.5 z-10 max-w-2xl">
+                        <div class="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-3 py-1 text-[11px] font-semibold text-indigo-300 border border-indigo-500/30">
+                            <span class="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping"></span> Causal Spreading Theory
+                        </div>
+                        <h2 class="text-xl font-bold tracking-tight">인과적 위기 전이(Risk Spreading) 역발상 모델</h2>
+                        <p class="text-xs text-indigo-100/90 leading-relaxed font-light">
+                            본 대시보드는 기존 머신러닝의 단순 위기 예측을 넘어, <strong>Microsoft EconML CausalForestDML</strong> 알고리즘을 활용하여 <strong>"고2 진로 고민(개입 T=1)의 침투가 고3 성적 스트레스 극복(Y=1)에 미치는 부정적 인과 데미지"</strong>를 측정합니다. 회복탄력성이 우수하여 스스로 극복하는 집단(Uplift 0 근접) 대신, 하나의 정서적 고민이 학업 전반으로 급속히 전이되어 스스로 붕괴하는 <strong>미개입 상태(T=0) 하위 20%의 '인과적 위기 취약군'을 선제 발굴하여 한정된 행정 예산을 초정밀 타겟팅</strong>하는 특허급 인과적 정책 솔루션입니다.
+                        </p>
+                    </div>
+                    
+                    <!-- 시각적 인포그래픽 박스 -->
+                    <div class="shrink-0 bg-white/10 backdrop-blur border border-white/15 p-4 rounded-2xl w-full md:w-72 space-y-2.5 text-xs z-10 shadow-inner">
+                        <span class="font-bold text-indigo-300 uppercase tracking-wider block text-[10px]">인과 도미노 메커니즘</span>
+                        <div class="flex items-center gap-2.5 bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-800/30">
+                            <div class="bg-rose-500 text-white rounded-lg p-1.5 shrink-0 shadow-sm"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i></div>
+                            <div>
+                                <span class="font-semibold block text-[11px]">1단계: 정서 위기 (T=1)</span>
+                                <span class="text-[9px] text-indigo-200">진로·진학 심각 고민 침투</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-center my-0.5"><i data-lucide="arrow-down" class="w-4 h-4 text-indigo-400 animate-bounce"></i></div>
+                        <div class="flex items-center gap-2.5 bg-indigo-950/40 p-2.5 rounded-xl border border-indigo-800/30">
+                            <div class="bg-red-600 text-white rounded-lg p-1.5 shrink-0 shadow-sm"><i data-lucide="activity" class="w-3.5 h-3.5"></i></div>
+                            <div>
+                                <span class="font-semibold block text-[11px]">2단계: 도미노 확산 (Y=0)</span>
+                                <span class="text-[9px] text-indigo-200">고3 학업 스트레스 전이 및 붕괴</span>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -150,6 +192,10 @@
                                 <div class="flex justify-between border-b border-slate-50 pb-3">
                                     <span class="text-sm text-slate-500">분류 세그먼트</span>
                                     <span id="detailSegment" class="text-sm font-bold text-slate-800">-</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-3">
+                                    <span class="text-sm text-slate-500">인과적 위기 분석 등급</span>
+                                    <span id="detailVulnerableLevel" class="text-sm font-semibold text-slate-800">-</span>
                                 </div>
                                 <div class="flex justify-between pb-3">
                                     <span class="text-sm text-slate-500">순수 처방 효율 (Uplift)</span>
@@ -192,14 +238,14 @@
 
                     <!-- 탭 버튼 목록 -->
                     <div class="flex flex-wrap gap-2.5 mb-6">
-                        <button id="tab-persuadable" onclick="switchSegmentTab('persuadable')" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-red-200 bg-red-50 text-red-700 shadow-sm transition-all duration-200 cursor-pointer">
-                            🎯 설득가능군 (Persuadables)
+                        <button id="tab-vulnerable" onclick="switchSegmentTab('vulnerable')" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-red-200 bg-red-50 text-red-700 shadow-sm transition-all duration-200 cursor-pointer">
+                            🎯 인과적 위기 취약군 (Vulnerables)
                         </button>
                         <button id="tab-surething" onclick="switchSegmentTab('surething')" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all duration-200 cursor-pointer">
-                            🟢 안심군 (Sure Things)
+                            🟢 자율 안심군 (Sure Things)
                         </button>
                         <button id="tab-lostcause" onclick="switchSegmentTab('lostcause')" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all duration-200 cursor-pointer">
-                            ⚠️ 철벽군 (Lost Causes)
+                            ⚠️ 장기 만성 위기군 (Lost Causes)
                         </button>
                         <button id="tab-others" onclick="switchSegmentTab('others')" class="px-4 py-2.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-all duration-200 cursor-pointer">
                             ⚙️ 기타관리군 (Others)
@@ -212,8 +258,8 @@
                         <!-- 2/3 영역: 군집 세부 설명 및 추천 개입 전략 -->
                         <div class="md:col-span-2 space-y-5">
                             <div class="flex flex-wrap items-center gap-3">
-                                <h4 id="guideTitle" class="text-base font-bold text-slate-900">설득가능군 (Persuadables)</h4>
-                                <span id="guideBadge" class="px-3 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-800 border-red-200">1순위 타겟 (집중 처방)</span>
+                                <h4 id="guideTitle" class="text-base font-bold text-slate-900">인과적 위기 취약군 (Vulnerables)</h4>
+                                <span id="guideBadge" class="px-3 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-800 border-red-200">최우선 타겟 (사각지대 집중 개입)</span>
                             </div>
                             
                             <div>
@@ -237,7 +283,7 @@
                             <div class="space-y-4">
                                 <div>
                                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">KEEP II 2차년도 패널 규모</span>
-                                    <span id="guideCount" class="text-2xl font-bold tracking-tight text-slate-800">1,674명 (18.3%)</span>
+                                    <span id="guideCount" class="text-2xl font-bold tracking-tight text-slate-800">1,831명 (약 20.0%)</span>
                                 </div>
                                 
                                 <div class="space-y-3">
@@ -266,6 +312,6 @@
     </div>
 
     <!-- 📦 Core Application Script -->
-    <script src="app.js?v=20260527b"></script>
+    <script src="app.js?v=20260527c"></script>
 </body>
 </html>

@@ -103,3 +103,51 @@ body {
     left: 125%;
     opacity: 1;
 }
+
+/* Premium Typography Correction */
+h1, h2, h3, h4, button, span, p {
+    letter-spacing: -0.02em;
+}
+
+/* Fade-in Animation for LLM Output Cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Apply animation to custom rendered markdown cards */
+.bg-red-50\/40, .bg-indigo-50\/40, .bg-emerald-50\/40 {
+    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Status Glowing Badge (Toss Bank Red Pulse Effect) */
+@keyframes border-glow {
+    0%, 100% {
+        border-color: rgba(239, 68, 68, 0.3);
+        box-shadow: 0 0 6px rgba(239, 68, 68, 0.15);
+    }
+    50% {
+        border-color: rgba(239, 68, 68, 0.85);
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+}
+
+.badge-status {
+    animation: border-glow 1.8s infinite ease-in-out;
+}
+
+/* Smooth Sidebar Hover Interaction */
+#studentList > div {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#studentList > div:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px -5px rgba(79, 70, 229, 0.12);
+}

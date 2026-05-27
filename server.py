@@ -66,7 +66,7 @@ def get_stats():
 
     return {
         "total_students": total,
-        "persuadables_count": vulnerables,
+        "vulnerables_count": vulnerables,
         "lost_causes_count": lost_causes,
         "sure_things_count": sure_things,
         "vulnerables_cutoff": round(t0_cutoff, 4)
@@ -91,12 +91,34 @@ def get_student_detail(student_id: int):
         raise HTTPException(status_code=404, detail="해당 학생을 찾을 수 없습니다.")
     
     data = student_row.iloc[0].to_dict()
+    uplift = float(data["uplift_score"])
+    t_val = int(data["T"])
+    
+    # 정밀 위기 분석 레벨 연산 (T=0 기준 분위수 계산)
+    t0_scores = df.loc[df['T'] == 0, 'uplift_score']
+    cutoff_5 = t0_scores.quantile(0.05)
+    cutoff_10 = t0_scores.quantile(0.10)
+    cutoff_20 = t0_scores.quantile(0.20)
+    
+    if t_val == 0:
+        if uplift <= cutoff_5:
+            vulnerable_level = "최고 위험 (Level 3 - 즉각 개입)"
+        elif uplift <= cutoff_10:
+            vulnerable_level = "고위험 (Level 2 - 집중 관리)"
+        elif uplift <= cutoff_20:
+            vulnerable_level = "경계 (Level 1 - 적극 모니터링)"
+        else:
+            vulnerable_level = "정서적 자율 통제 상태"
+    else:
+        vulnerable_level = "기개입 상태 (진로 고민 T=1)"
+    
     return {
         "id": int(data["ID"]),
         "happiness": int(data["X_happiness"]),
         "gender": "남성" if data["X_gender"] == 1 else "여성",
-        "uplift_score": float(data["uplift_score"]),
-        "segment": data["segment"]
+        "uplift_score": uplift,
+        "segment": data["segment"],
+        "vulnerable_level": vulnerable_level
     }
 
 # 4. Claude LLM 실시간 상담 가이드 생성 요청 구조
@@ -113,10 +135,30 @@ def generate_llm_guide(req: LLMRequest):
     
     data = student_row.iloc[0]
     
+    # 정밀 위기 분석 레벨 구하기
+    uplift = float(data["uplift_score"])
+    t_val = int(data["T"])
+    t0_scores = df.loc[df['T'] == 0, 'uplift_score']
+    cutoff_5 = t0_scores.quantile(0.05)
+    cutoff_10 = t0_scores.quantile(0.10)
+    cutoff_20 = t0_scores.quantile(0.20)
+    
+    if t_val == 0:
+        if uplift <= cutoff_5:
+            vulnerable_level = "최고 위험 (Level 3 - 즉각 개입)"
+        elif uplift <= cutoff_10:
+            vulnerable_level = "고위험 (Level 2 - 집중 관리)"
+        elif uplift <= cutoff_20:
+            vulnerable_level = "경계 (Level 1 - 적극 모니터링)"
+        else:
+            vulnerable_level = "정서적 자율 통제 상태"
+    else:
+        vulnerable_level = "기개입 상태 (진로 고민 T=1)"
+    
     try:
         client = Anthropic(api_key=req.api_key)
         segment = data['segment']
-        uplift = float(data['uplift_score'])
+        
         # 군집별 맥락 설명 (Claude가 더 정확한 리포트를 생성하도록)
         segment_context = {
             '인과적 위기 취약군 (Vulnerables)': f'진로 고민이 없는 현재 상태(T=0)임에도 위기 전이 데미지 점수({uplift:.4f})가 전체 하위 20%에 해당함. 즉, 진로 고민이 발생할 경우 성적 스트레스로 도미노처럼 번질 위험이 가장 높은 사각지대 핵심 타겟.',
@@ -126,21 +168,36 @@ def generate_llm_guide(req: LLMRequest):
         }.get(segment, '')
 
         prompt = f"""
-        너는 KEEP II(한국교육고용패널) 데이터 기반 인과추론 AI 시스템 'Edu-Causal Compass'와 연동된 고등학교 베테랑 상담 교사야.
-        인과추론 모델(EconML CausalForestDML)의 분석 결과를 바탕으로, 이 학생을 위한 맞춤형 상담 리포트를 한글로 작성해줘.
+        너는 KEEP II(한국교육고용패널) 데이터 기반 인과추론 AI 시스템 'Edu-Causal Compass'와 연동된 전국 최고 권위의 고등학교 교육 심리 및 상담 교사야.
+        인과추론 모델(EconML CausalForestDML)의 위기 전이(Risk Spreading) 모델 분석 결과를 바탕으로, 이 학생을 위한 맞춤형 상담 솔루션 리포트를 한글로 품격 있고 설득력 있게 작성해줘.
 
-        [학생 인과 프로필]
-        - ID: {data['ID']}
+        [인과추론 위기 전이 모델의 핵심 로직 개요]
+        - 진로 및 진학 고민(개입 T=1)은 학생들에게 정서적 위기로 작용합니다. 이 위기가 들어왔을 때 고3 당시 성적 스트레스를 조절 및 완화(Y=1)하지 못하도록 방해하는 '인과적 데미지'가 바로 음수(-) 영역의 Uplift Score입니다.
+        - 점수가 0에 가까울수록 진로 고민이 들어와도 스트레스를 스스로 제어할 수 있는 '회복탄력성이 높은 안심군'입니다.
+        - 반대로 점수가 음수(-)로 가장 깊을수록(하위 20%), 진로 고민이 조금만 침투해도 스트레스로 도미노처럼 확산되어 학생 정서 전체가 붕괴되는 '인과적 위기 취약군'입니다.
+        - 현재 미개입 상태(T=0)인 학생들 중 이 데미지가 가장 심각한 하위 20%를 '사각지대 핵심 타겟'으로 정의하여 예산을 집중 배정합니다.
+
+        [대상 학생 인과 프로필]
+        - 학생 고유 ID: {data['ID']}
         - 성별: {'남성' if data['X_gender']==1 else '여성'}
         - 고2 주관적 행복도: {data['X_happiness']}점 / 10점
-        - AI 인과 군집: {segment}
+        - AI 인과 분류 군집: {segment}
         - 위기 전이 데미지 점수 (Uplift Score): {uplift:.4f}
-        - 군집 해석: {segment_context}
+        - 인과적 위기 분석 등급: {vulnerable_level}
+        - 군집 해석 및 맥락: {segment_context}
 
-        [출력 양식 — 반드시 아래 3개 섹션으로 구성]
-        1. 🎯 인과적 위기 요인 진단 (2~3문장, 데이터 근거 포함)
-        2. 💬 담임교사용 실전 대화 오프닝 (구어체, 학생 눈높이에 맞게 자연스럽게)
-        3. 📱 학부모 발송용 안심 안내 문자 초안 (따뜻하고 구체적으로, 100자 내외)
+        [출력 양식 — 반드시 아래 3개 대주제로 구성하고, 마크다운 문법으로 미려하게 작성해줘]
+        
+        ## 🎯 1. 인과적 위기 요인 정밀 진단
+        - 학생의 성별, 행복도, 인과 점수({uplift:.4f}) 및 위기 분석 등급({vulnerable_level}) 데이터를 근거로 제시하며, 이 학생의 정서적 도미노 전이 취약성에 대해 2~3문장으로 날카롭고 설득력 있는 정밀 교육학적 분석을 제시하세요.
+        
+        ## 💬 2. 담임교사용 실전 대화 시나리오 (오프닝 & 공감 코칭)
+        - 베테랑 교사로서 학생을 Wee Class나 교무실로 조용히 불러 자연스럽고 따뜻하게 대화를 여는 구어체 스크립트입니다.
+        - 권위적인 어조는 배제하고, "요즘 고민이 부쩍 많아졌지?"와 같이 학생의 눈높이에서 정서적 장벽을 허무는 자연스러운 발화체로 작성해 주세요.
+        
+        ## 📱 3. 학부모 발송용 밀착 안심 문자 초안
+        - 가정과의 연대를 공고히 하기 위해 담임교사가 학부모에게 발송할 안심 안내 문자입니다.
+        - 따뜻하고 구체적인 문장으로 작성하며, 학교에서 정교한 AI 기반 진단으로 학생의 보이지 않는 학업 및 진로 스트레스 취약군을 선제 발굴하여 정성껏 지도하고 있음을 전해 신뢰감을 심어주세요. (줄바꿈 포함 100자~150자 내외)
         """
         
         message = client.messages.create(
