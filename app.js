@@ -1,5 +1,8 @@
-const API_URL = "http://localhost:8000/api";
+// 동일 도메인 호스팅: 상대경로 사용. 로컬 개발 시도 localhost:8000을 같이 서빙하므로 동작.
+const API_URL = "/api";
 let currentSelectedId = null;
+let currentPage = 1;
+const PAGE_SIZE = 30;
 
 // 1. Segment Data for Guide Tabs
 const segmentDetails = {
@@ -92,28 +95,46 @@ async function fetchGlobalStats() {
     }
 }
 
-// 4. 학생 사이드바 목록 연동
-async function fetchStudentList() {
+// 4. 학생 사이드바 목록 연동 (페이지네이션 지원)
+async function fetchStudentList(page = 1) {
     try {
-        const res = await fetch(`${API_URL}/students`);
+        const res = await fetch(`${API_URL}/students?page=${page}&page_size=${PAGE_SIZE}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        currentPage = data.page;
+
         const select = document.getElementById('studentSelect');
         const listContainer = document.getElementById('studentList');
+        const infoEl = document.getElementById('paginationInfo');
 
         // 기존 목록 비우기 (기본값 제외)
         select.innerHTML = '<option value="">학생 고유 ID 선택...</option>';
         listContainer.innerHTML = '';
 
+        // 페이지 정보 라벨 갱신 (예: "31-60 / 9,157")
+        if (infoEl) {
+            if (data.total > 0) {
+                const startIdx = (data.page - 1) * data.page_size + 1;
+                const endIdx = Math.min(data.page * data.page_size, data.total);
+                infoEl.innerText = `${startIdx.toLocaleString()}-${endIdx.toLocaleString()} / ${data.total.toLocaleString()}`;
+            } else {
+                infoEl.innerText = '';
+            }
+        }
+
+        // 페이지 전환 시 명단 영역 최상단으로 스크롤
+        listContainer.scrollTop = 0;
+
         data.students.forEach(std => {
-            // 셀렉트박스 아이템 추가
+            // 셀렉트박스 옵션 추가
             const opt = document.createElement('option');
             opt.value = std.ID;
             opt.innerText = `학생 ID: ${std.ID}`;
             select.appendChild(opt);
 
-            // 명단 리스트 컴포넌트 추가
+            // 명단 아이템 세그먼트별 스타일 결정
             let segmentName = "기타관리군";
-            let badgeColor = "bg-slate-50 text-slate-600 border border-slate-200";
+            let badgeColor = "bg-slate-50 text-slate-600 border border-slate-100";
             let dotClass = "bg-slate-400";
 
             if (std.segment.includes('인과적 위기 취약군')) {
@@ -128,14 +149,11 @@ async function fetchStudentList() {
                 segmentName = "자율 안심군";
                 badgeColor = "bg-emerald-50 text-emerald-700 border border-emerald-100";
                 dotClass = "bg-emerald-500";
-            } else {
-                segmentName = "기타관리군";
-                badgeColor = "bg-slate-50 text-slate-600 border border-slate-100";
-                dotClass = "bg-slate-400";
             }
 
+            const isCurrentlySelected = currentSelectedId !== null && String(currentSelectedId) === String(std.ID);
             const item = document.createElement('div');
-            item.className = `flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-all duration-200 border border-transparent hover:border-slate-200 group`;
+            item.className = `flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all duration-200 border group ${isCurrentlySelected ? 'bg-indigo-50/50 border-indigo-100' : 'border-transparent hover:bg-slate-50 hover:border-slate-200'}`;
             item.onclick = () => { select.value = std.ID; fetchStudentDetail(std.ID); };
             item.innerHTML = `
                 <div class="flex items-center gap-2">
@@ -146,9 +164,67 @@ async function fetchStudentList() {
             `;
             listContainer.appendChild(item);
         });
+
+        // 현재 선택된 학생이 이 페이지 안에 있으면 셀렉트박스 value 동기화
+        if (currentSelectedId !== null) {
+            select.value = String(currentSelectedId);
+        }
+
+        renderPagination(data.page, data.total_pages);
     } catch (error) {
         console.error("학생 목록을 가져오는 데 실패했습니다:", error);
     }
+}
+
+// 4-1. 페이지네이션 버튼 렌더 (커뮤니티 스타일: ‹ 1 … 5 6 [7] 8 9 … 306 ›)
+function renderPagination(page, totalPages) {
+    const container = document.getElementById('paginationContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const baseBtn = "inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-lg font-semibold transition-all duration-150 select-none";
+    const stateInactive = "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-600 cursor-pointer";
+    const stateActive = "border border-indigo-600 bg-indigo-600 text-white shadow-sm cursor-default";
+    const stateDisabled = "border border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed";
+
+    const addBtn = (label, targetPage, opts) => {
+        const isActive = opts && opts.isActive === true;
+        const isDisabled = opts && opts.isDisabled === true;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `${baseBtn} ${isActive ? stateActive : (isDisabled ? stateDisabled : stateInactive)}`;
+        btn.innerHTML = label;
+        if (isDisabled) {
+            btn.disabled = true;
+        } else if (!isActive) {
+            btn.addEventListener('click', () => fetchStudentList(targetPage));
+        }
+        container.appendChild(btn);
+    };
+    const addDots = () => {
+        const span = document.createElement('span');
+        span.className = "inline-flex items-center justify-center min-w-[20px] h-7 text-slate-400 select-none";
+        span.innerText = '…';
+        container.appendChild(span);
+    };
+
+    // 이전 버튼
+    addBtn('‹', page - 1, { isDisabled: page <= 1 });
+
+    // 첫 페이지 + 현재±1 + 마지막 페이지, 사이 갭은 …
+    const candidates = new Set([1, totalPages, page - 1, page, page + 1]);
+    const ordered = [...candidates].filter(p => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+
+    let prev = 0;
+    for (const p of ordered) {
+        if (prev > 0 && p - prev > 1) addDots();
+        addBtn(String(p), p, { isActive: p === page });
+        prev = p;
+    }
+
+    // 다음 버튼
+    addBtn('›', page + 1, { isDisabled: page >= totalPages });
 }
 
 // 5. 학생 단건 상세 정보 조회

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\('step2_output.csv'\\) | Select-Object -First 4; \"BOM bytes: $\\($bytes -join ','\\)\"; $content = [System.IO.File]::ReadAllText\\('step2_output.csv', [System.Text.Encoding]::UTF8\\); \\($content -split \"`n\"\\)[0..2])",
+      "PowerShell($lines = [System.IO.File]::ReadAllLines\\('step2_output.csv', [System.Text.Encoding]::UTF8\\); $hdr = $lines[0]; \"Header: $hdr\"; $data = $lines | Select-Object -Skip 1; \"Total rows: $\\($data.Count\\)\"; $genderCounts = $data | ForEach-Object { \\($_ -split ','\\)[2] } | Group-Object | Select-Object Name,Count; \"Gender values:\"; $genderCounts | Format-Table -AutoSize | Out-String; $tCounts = $data | ForEach-Object { \\($_ -split ','\\)[5] } | Group-Object | Select-Object Name,Count; \"T values:\"; $tCounts | Format-Table -AutoSize | Out-String; $yCounts = $data | ForEach-Object { \\($_ -split ','\\)[6] } | Group-Object | Select-Object Name,Count; \"Y values:\"; $yCounts | Format-Table -AutoSize | Out-String)"
+    ]
+  }
+}

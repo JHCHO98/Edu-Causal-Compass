@@ -1,5 +1,13 @@
 .env
+.env.*
 Data/
 __pycache__/
 .venv/
 *.xlsx
+
+# Vercel
+.vercel/
+
+# IDE
+.vscode/
+.idea/
